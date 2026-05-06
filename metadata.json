@@ -1,0 +1,9 @@
+{
+  "name": "NutriMind AI",
+  "description": "An AI-powered food and health assistant that provides personalized nutrition insights, meal tracking, and behavioral coaching using Gemini AI.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}

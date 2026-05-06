@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isDataOwner() { return isSignedIn() && request.auth.uid == resource.data.userId; }
+    function isIncomingOwner() { return isSignedIn() && request.auth.uid == request.resource.data.userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // --- User Profiles ---
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profile', 'displayName'])
+      );
+
+      function isValidUser(data) {
+        return data.uid == request.auth.uid &&
+               data.email is string &&
+               data.email.size() <= 200;
+      }
+    }
+
+    // --- Meal Logs ---
+    match /mealLogs/{logId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isIncomingOwner() && isValidMealLog(request.resource.data);
+      allow update, delete: if isDataOwner();
+
+      function isValidMealLog(data) {
+        return data.userId == request.auth.uid &&
+               data.totalCalories is number &&
+               data.items is list &&
+               data.items.size() <= 50;
+      }
+    }
+
+    // --- Water Logs ---
+    match /waterLogs/{logId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isIncomingOwner() && isValidWaterLog(request.resource.data);
+      allow update, delete: if isDataOwner();
+
+      function isValidWaterLog(data) {
+        return data.userId == request.auth.uid &&
+               data.amountMl is number &&
+               data.amountMl > 0;
+      }
+    }
+
+    // --- Daily Summaries ---
+    match /dailySummaries/{summaryId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create, update: if isIncomingOwner();
+      allow delete: if isDataOwner();
+    }
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User's health profile and preferences",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "profile": {
+          "type": "object",
+          "properties": {
+            "age": { "type": "number" },
+            "gender": { "type": "string" },
+            "heightCm": { "type": "number" },
+            "weightKg": { "type": "number" },
+            "activityLevel": { "type": "string" },
+            "dietaryGoals": { "type": "array", "items": { "type": "string" } },
+            "allergies": { "type": "array", "items": { "type": "string" } },
+            "calorieGoal": { "type": "number" },
+            "waterGoal": { "type": "number" }
+          }
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "MealLog": {
+      "title": "Meal Log",
+      "description": "A record of food consumed",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "mealType": { "type": "string", "enum": ["breakfast", "lunch", "dinner", "snack"] },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "calories": { "type": "number" },
+              "protein": { "type": "number" },
+              "carbs": { "type": "number" },
+              "fat": { "type": "number" }
+            }
+          }
+        },
+        "totalCalories": { "type": "number" },
+        "aiNotes": { "type": "string" }
+      },
+      "required": ["userId", "timestamp", "items", "totalCalories"]
+    },
+    "WaterLog": {
+      "title": "Water Intake",
+      "description": "Record of water consumption",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "amountMl": { "type": "number" }
+      },
+      "required": ["userId", "timestamp", "amountMl"]
+    },
+    "DailySummary": {
+      "title": "Daily Summary",
+      "description": "Aggregated health data for a specific day",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "totalCalories": { "type": "number" },
+        "totalWater": { "type": "number" },
+        "healthScore": { "type": "number" },
+        "habitStreak": { "type": "number" }
+      }
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Primary user profile document"
+    },
+    "mealLogs/{logId}": {
+      "schema": "MealLog",
+      "description": "Individual meal logs"
+    },
+    "waterLogs/{logId}": {
+      "schema": "WaterLog",
+      "description": "Individual water logs"
+    },
+    "dailySummaries/{summaryId}": {
+      "schema": "DailySummary",
+      "description": "Aggregated daily statistics"
+    }
+  }
+}
