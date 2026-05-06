@@ -18,6 +18,10 @@ FROM node:22-slim
 
 WORKDIR /app
 
+# Set production environment
+ENV NODE_ENV=production
+ENV PORT=3000
+
 # Copy package files and install production dependencies only
 COPY package*.json ./
 RUN npm install --omit=dev
@@ -26,10 +30,6 @@ RUN npm install --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/server.ts ./
 COPY --from=builder /app/package.json ./
-# Since we use tsx for dev but node for start, and node 22+ supports TS type stripping, 
-# we can run server.ts directly or compile it. 
-# AI Studio instructions suggest server.ts is fine for start script 
-# as long as node supports it or it's stripped.
 
 # Expose the application port
 EXPOSE 3000
